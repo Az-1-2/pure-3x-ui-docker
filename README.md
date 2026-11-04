@@ -9,16 +9,6 @@ A clean build of [3x-ui](https://github.com/MHSanaei/3x-ui) without ads or donat
 - **Fork:** [Packages](https://github.com/Az-1-2/pure-3x-ui-docker/pkgs/container/pure-3x-ui)
 - **Upstream:** [Packages](https://github.com/MHSanaei/3x-ui/pkgs/container/3x-ui)
 
-## Policy on sponsor commits
-
-This fork **deliberately removes** upstream's sponsor infrastructure: `sponsor.go`, `SponsorSlot`, `SponsorsPage`, `useSponsorsQuery`, donation buttons, the `/sponsors` endpoint. The reason is privacy: upstream code contacts `sponsors.sanaei.dev` on every login page load (when the cache expires), exposing the server IP and SNI to a third party with no way to disable it. For operators in censored countries, this lets DPI identify the panel as 3x-ui.
-
-**What this means for upstream commits:**
-
-- Sponsor commits (new slots, new endpoints, changes to `sponsor.go` or the sponsor frontend components) are **not accepted in this fork as-is**. They are **reworked** via `scripts/remove-ads.sh`: sponsor code is stripped, `sponsor.go` is replaced with a stub, endpoints are removed.
-- This is **not** hostility toward upstream. The [3x-ui](https://github.com/MHSanaei/3x-ui) project is an excellent panel, and we are grateful to the author and contributors. But this fork exists **specifically** to remove sponsor tracking. If upstream adds new sponsor features, the fork will strip them, not inherit them.
-- If you want your sponsor feature to **stay** in the panel — use [upstream](https://github.com/MHSanaei/3x-ui). It works there as intended. **Here — NO! AND IT NEVER WILL!**
-
 ## Upstream Release Tracking
 Unlike [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) itself, this fork ****does update on every upstream release****. 
 
@@ -150,7 +140,7 @@ docker buildx build \
 
 ## Upstream synchronization
 
-Code is pulled automatically via the `Sync Upstream` workflow, and releases are published on new upstream releases, but not per commit. 
+Code is pulled automatically via the `Sync Upstream` workflow, and releases are published on new upstream releases, but not per commit. This repo may also be synced manually to [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) to recieve new modifications as necessary. 
 
 ### What this means
 
