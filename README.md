@@ -7,7 +7,7 @@ A clean build of [3x-ui](https://github.com/MHSanaei/3x-ui) without ads or donat
 ### Current state
 
 - **Fork:** [Packages](https://github.com/Az-1-2/pure-3x-ui-docker/pkgs/container/pure-3x-ui)
-- **Upstream:** [Packages](https://github.com/MHSanaei/3x-ui/pkgs/container/3x-ui))
+- **Upstream:** [Packages](https://github.com/MHSanaei/3x-ui/pkgs/container/3x-ui)
 - **Sync history:** [docs/upstream-changelog.md](docs/upstream-changelog.md)
 
 ## Policy on sponsor commits
@@ -44,78 +44,16 @@ This is a fork of the **pure-3x-ui** panel by [vermiliondevil-web](https://githu
 
 ### Docker Compose (recommended)
 
+1. Create docker-compose.yml
+```
+
 
 Run as **root**:
 
 ```bash
 bash <(curl -Ls https://raw.githubusercontent.com/vermiliondevil-web/pure-3x-ui/main/install.sh)
 ```
-### Alternative methods
 
-```bash
-# 1. Via github.com/raw (redirects to raw.githubusercontent)
-bash <(curl -Ls "https://github.com/vermiliondevil-web/pure-3x-ui/raw/main/install.sh")
-
-# 2. With a specific tag (stable release)
-bash <(curl -Ls https://raw.githubusercontent.com/vermiliondevil-web/pure-3x-ui/v3.9.22/install.sh)
-```
-### What the script does
-
-1. Detects the OS and architecture.
-2. Installs dependencies.
-3. Downloads the latest release from **this** repository.
-4. Verifies `.sha256`.
-5. Configures the service, database, SSL.
-6. Prints the **login, password, port, webBasePath**, and **URL** of the panel.
----
-
-## Management
-
-```bash
-x-ui              # Management menu
-x-ui start        # Start
-x-ui stop         # Stop
-x-ui restart      # Restart
-x-ui status       # Status
-x-ui settings     # Current settings
-x-ui enable       # Enable autostart
-x-ui disable      # Disable autostart
-x-ui log          # Logs
-x-ui banlog       # Fail2ban ban logs
-x-ui update       # Update
-x-ui install      # Install
-x-ui uninstall    # Uninstall
-```
-## Update
-
-### Via the UI ("Update" button)
-
-The panel **checks** the latest release on GitHub via `api.github.com/repos/vermiliondevil-web/pure-3x-ui/releases/latest` and **downloads** `update.sh` from `raw.githubusercontent.com`.
-
-| Version in file | Tag on GitHub | Button |
-|---|---|---|
-| `3.9.21` | `v3.9.21` | ❌ inactive |
-| `3.9.21` | `v3.9.22` | ✅ active |
-| `3.9.22` | `v3.9.22` | ❌ inactive |
-
-### Via `install.sh`
-
-```bash
-bash <(curl -Ls https://raw.githubusercontent.com/vermiliondevil-web/pure-3x-ui/main/install.sh)
-```
-**Important:** updating the panel does **not** overwrite the installed Xray core — the version you selected via Settings → Xray Updates is preserved. Details — [docs/xray-core-preservation.md](docs/xray-core-preservation.md).
-
-
-## Building from source
-
-```bash
-git clone https://github.com/vermiliondevil-web/pure-3x-ui.git
-cd pure-3x-ui/frontend
-npm install
-npm run build
-cd ..
-CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags "-w -s" -o x-ui-main main.go
-```
 ## Automation
 
 The repository has **two GitHub Actions workflows**:
