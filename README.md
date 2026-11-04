@@ -46,13 +46,56 @@ This is a fork of the **pure-3x-ui** panel by [vermiliondevil-web](https://githu
 
 1. Create docker-compose.yml
 ```
-
-
-Run as **root**:
-
-```bash
-bash <(curl -Ls https://raw.githubusercontent.com/vermiliondevil-web/pure-3x-ui/main/install.sh)
+services:
+  3xui:
+    image: ghcr.io/az-1-2/pure-3x-ui:latest
+    container_name: 3x-ui
+    # hostname: yourhostname <- optional
+    # Optional hard memory cap. When set, the panel derives its Go soft limit
+    # (GOMEMLIMIT, ~90% of this cap) so it GCs before the OOM killer fires.
+    # mem_limit: 512m
+    # AmneziaWG works in this image: it runs embedded in the panel process
+    # (amneziawg-go over a gVisor userspace netstack), so it needs no kernel
+    # module and no host tooling. Publish its UDP listen port to use it.
+    volumes:
+      - $PWD/db/:/etc/x-ui/
+      - $PWD/cert/:/root/cert/
+      - $PWD/acme/:/root/.acme.sh/
+    environment:
+      XRAY_VMESS_AEAD_FORCED: "false"
+      XUI_ENABLE_FAIL2BAN: "true"
+      XUI_GOGC: "50"
+      XUI_MEMORY_RELEASE_INTERVAL: "5"
+      XUI_MEMORY_LIMIT: "256"
+      XUI_LOG_LEVEL: "warning"
+      XUI_DEBUG: "false"
+      XUI_PORT: "2053"
+      # XUI_MEMORY_LIMIT: "400"      # in MiB
+      # GOMEMLIMIT: "400MiB"         # Go syntax, takes precedence
+      # XUI_PPROF: "true"           # expose pprof on 127.0.0.1:6060 for profiling
+      # XUI_INIT_WEB_BASE_PATH: "/"
+    tty: true
+    ports:
+      - "2053:2053"
+      - "2096:2096"
+      - "443:443"
+    restart: unless-stopped
 ```
+2 Run docker compose up -d to create the container, then go to the panel to begin setup. The panel may be on a local ip, regular ip, or domain on port 2053 depending on your setup. 
+
+**Notes**: You may import an existing sqlite file in the panel if you wish. Postgres may be supported, but is untested and not recommended. 
+
+### Docker Run 
+
+1. Run 
+```
+docker run --name 3x-ui -v $PWD/db/:/etc/x-ui/ -v $PWD/cert/:/root/cert/ -v $PWD/acme/:/root/.acme.sh/ -e XRAY_VMESS_AEAD_FORCED=false -e XUI_ENABLE_FAIL2BAN=true -e XUI_GOGC=50 -e XUI_MEMORY_RELEASE_INTERVAL=5 -e XUI_MEMORY_LIMIT=256 -e XUI_LOG_LEVEL=warning -e XUI_DEBUG=false -e XUI_PORT=2053 -t -p 2053:2053 -p 2096:2096 -p 443:443 --restart unless-stopped ghcr.io/az-1-2/pure-3x-ui:latest
+```
+
+**Notes**: This is recommended for testing only, for a regular setup, it is highly recommended to use compose. 
+
+### Convert an existing 3x-ui install
+If you already have 3x-ui running in Docker, you can simply use ghcr.io/az-1-2/pure-3x-ui:latest as a drop in replacement image without any modifications and recreate your container. If you run 3x-ui as a binary (or installed via install.sh), then you will need to backup your sqlite file and follow the compose instructions above, then reimport the sqlite file when installed. 
 
 ## Automation
 
