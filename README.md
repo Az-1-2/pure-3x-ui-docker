@@ -1,47 +1,15 @@
 # pure-3x-ui-docker
 
-> **This is a fork.** The project is a derivative work of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) (author — [vermiliondevil-web](https://github.com/vermiliondevil-web) Which in of itself is a fork of [3x-Ui](https://github.com/MHSanaei/3x-ui) (author — [MHSanaei](https://github.com/MHSanaei)) and is distributed under the **AGPL-3.0** license. All changes made in this fork are published under the same license.
+> **This is a fork.** The project is a derivative work of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) (author — [vermiliondevil-web](https://github.com/vermiliondevil-web)) Which in of itself is a fork of [3x-Ui](https://github.com/MHSanaei/3x-ui) (author — [MHSanaei](https://github.com/MHSanaei)) and is distributed under the **AGPL-3.0** license. All changes made in this fork are published under the same license.
 
 A clean build of [3x-ui](https://github.com/MHSanaei/3x-ui) without ads or donation blocks, and a build of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) with Docker images published for containerised environments. 
 
-**A CALL TO UPSTREAM COMMITTERS AND CONTRIBUTORS**
-
-**This section is not a complaint. It is a demand on the development process.**
-
-A proxy management panel is **infrastructure**. Its code runs on servers that people use to circumvent censorship. A bug in this code is not "an app bug" — it is a **vulnerability** that can cost a server operator their freedom or safety.
-
-**We call on upstream committers and contributors to exercise discipline:**
-
-1. **Review every PR for security.** Do not merge code that adds network calls without explaining why. Do not merge code that contacts domains unique to the panel. Do not merge code that writes files outside the panel's directories.
-
-2. **Require signed commits.** The xz/liblzma (Jia Tan) scenario is not theory. It is reality. If a contributor cannot sign a commit, that is grounds for additional review — not for "let's trust them".
-
-3. **Respond to security issues.** If the community opens an Issue saying the panel creates an identifying SNI — that is not "not planned". It is a **task**. If the community asks for an opt-out for sponsor tracking — that is not "we don't want to". It is a **security requirement**.
-
-4. **Do not ignore calls to harden the supply chain.** If users ask for PR audits and contributor verification — that is not "paranoia". It is **responsibility** toward those who use your code.
-
-**We call on the community to influence contributors:**
-
-- If you see a problem — **open an Issue**, don't stay silent.
-- If an Issue is closed as "not planned" — **open it again**, with a threat model.
-- If upstream ignores it — **fork and strip it out**. Silence equals consent.
-- If you are a contributor — **do not merge what you have not reviewed**. Your name is on the commit. Your responsibility.
-- **This fork is our answer to negligence.** We are not claiming the upstream author is malicious. We are claiming that **the development process does not ensure security**, and this creates real risks. Until upstream changes the process, forks will exist. This is not a "split". It is **insurance**.
-
-**If you use upstream — verify. If you are a contributor — own your code. If you are the author — listen to the community.**
-### Update policy
-
-- Critical security fix (CVE).
-- Panel does not start / breaks.
-- Xray core is reset on update.
-- Personal necessity.
-
-Niche fixes (multi-user Shadowsocks, node sync, MTProto, vmess import) are **skipped** unless used.
 ### Current state
 
 - **Fork:** [Packages](https://github.com/Az-1-2/pure-3x-ui-docker/pkgs/container/pure-3x-ui)
 - **Upstream:** [Packages](https://github.com/MHSanaei/3x-ui/pkgs/container/3x-ui))
 - **Sync history:** [docs/upstream-changelog.md](docs/upstream-changelog.md)
+
 ## Policy on sponsor commits
 
 This fork **deliberately removes** upstream's sponsor infrastructure: `sponsor.go`, `SponsorSlot`, `SponsorsPage`, `useSponsorsQuery`, donation buttons, the `/sponsors` endpoint. The reason is privacy: upstream code contacts `sponsors.sanaei.dev` on every login page load (when the cache expires), exposing the server IP and SNI to a third party with no way to disable it. For operators in censored countries, this lets DPI identify the panel as 3x-ui.
@@ -52,85 +20,12 @@ This fork **deliberately removes** upstream's sponsor infrastructure: `sponsor.g
 - This is **not** hostility toward upstream. The [3x-ui](https://github.com/MHSanaei/3x-ui) project is an excellent panel, and we are grateful to the author and contributors. But this fork exists **specifically** to remove sponsor tracking. If upstream adds new sponsor features, the fork will strip them, not inherit them.
 - If you want your sponsor feature to **stay** in the panel — use [upstream](https://github.com/MHSanaei/3x-ui). It works there as intended. **Here — NO! AND IT NEVER WILL!**
 
-**How it works technically:**
-
-After every `Sync Upstream`, `scripts/remove-ads.sh` runs and:
-
-1. Removes the sponsor frontend components.
-2. Replaces `internal/web/service/panel/sponsor.go` with a stub (functions return empty values, no network calls).
-3. Removes sponsor routes, menu entries, locales.
-4. Strips `/sponsors` from `openapi.json` and regenerates the MDX documentation.
-If upstream adds a **new place** for sponsors (a new file, a new endpoint, a new button), `remove-ads.sh` may not cover it immediately. In that case the fork **extends the script**, it does not inherit the feature. **This is a deliberate policy**, not a bug.
-## Upstream security: known incidents and our position
-
-This fork exists not only to remove ads. We closely monitor upstream security, because a proxy management panel is infrastructure, not a toy. Below are the cases that made us treat upstream code with caution. We **do not claim** the upstream author is malicious. We claim that **the development process is prone to negligence**, and this creates real risks for operators.
-### 1. Sponsor tracking as a leak channel (Issue #6824)
-
-Until v3.10.2, the panel contacted `sponsors.sanaei.dev` on every login page load (when the cache expired) — a domain unique to 3x-ui. In the TLS SNI, this domain was visible to any on-path observer, including DPI. This let anyone identify the server as a 3x-ui panel **from a single connection**. The upstream author (MHSanaei) **acknowledged the problem** and in v3.10.2 replaced the domain with `raw.githubusercontent.com`, which is used by many tools and does not expose the panel. But the problem existed **for years**, and fixing it required a public Issue with a threat model.
-
-**What this means:** the sponsor infrastructure was not "just advertising". It created an **identifying signal** for censors.
-### 2. Node sync without signatures (GHSA-rr44-v4rv-x654)
-
-In September 2026, security researchers found that the master panel receives data from nodes via `GET panel/api/inbounds/list` and **does not verify the response signature**. A compromised node could **overwrite client UUIDs/Passwords** on the master (via a global email search) and **inject its own endpoint** into the user's subscription.
-
-**What this means:** the trust architecture between master and node was broken. A node could attack the master, and the master would not notice.
-### 3. Arbitrary file write (CVE-2026-55477)
-
-Before v3.3.1, any panel admin could, via a database import, redirect the Xray log to `~/.ssh/authorized_keys` and write their own key there — i.e., **gain root access to the server**. The vulnerability was fixed only after public disclosure (CVSS 7.2).
-
-**What this means:** path validation in upstream was absent. The hole allowed turning the panel into a server takeover tool.
-### 4. Calls to harden the supply chain (Issue #4962)
-
-In June 2026, users **directly asked** the upstream author to: audit PRs, verify contributor identities (to avoid the "Jia Tan" scenario from xz/liblzma), require signed commits, and not merge huge PRs without review. The upstream author **did not respond substantively** — only gave downgrade instructions.
-
-**What this means:** the community sees the problem, but the development process does not change.
----
-
-### Our position
-
-We **do not call for** a boycott of upstream. The 3x-ui project is an important tool, and we are grateful to the author for the code. But we believe that:
-
-1. **Security negligence is not a "development style".** When a censorship-circumvention panel creates an identifying SNI, writes arbitrary files, and does not verify node signatures — these are **architectural errors**, not "features".
-2. **The community must influence contributors.** If you use upstream and see a problem — open an Issue, demand review, propose signed commits. Silence equals consent.
-
-3. **Forks are not a "split", but insurance.** When upstream does not respond to security issues, forks (like this one) take on the role of "strip out what is dangerous and document why".
-4. **We call on panel operators:**
-- **Check where your panel phones home (tcpdump, strings).**
-- **Do not update to every upstream release without checking.**
-- **If you see a problem — report it upstream, don't stay silent.**
-- **If upstream ignores it — fork and strip it out.**
-
-**This fork is our answer to negligence. It is not perfect, but it is transparent: everything we strip is documented in `scripts/remove-ads.sh`, and anyone can verify what is left.**
-## Upstream release tracking
-
-This fork **does not update** on every upstream release. Below is what came out, what was taken, and why.
-
-| Date | Upstream | What's in it | Decision |
-|------|----------|--------------|----------|
-| 2026-10-10 | v3.10.0 | MASQUE, WARP modal, Xray 26.10.10, systemd sandbox | ✅ taken (prod + test) |
-| 2026-10-13 | v3.10.2 | Shadowsocks hot apply, node sync load, vmess import, MTProto limit, sponsor SNI fix, Windows 3x-ui.exe | ❌ skipped |
-
-### Why v3.10.2 was skipped
-
-- **Shadowsocks hot apply** — only for multi-user Shadowsocks. Not used.
-- **Node sync load** — only for multi-node setups. Master only.
-- **vmess link import** — only when importing vmess links. Not used.
-- **MTProto handshake limit** — only for MTProto. Not used.
-- **Sponsor SNI fix** — sponsors are stripped, irrelevant.
-- **Windows 3x-ui.exe** — Linux build, irrelevant.
-- **Core crash reports** — useful, but not critical.
----
+## Upstream Release Tracking
+Unlike [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) itself, this fork ****does update on every upstream release****. 
 
 ## Who this fork is for
 
-This fork is **for personal use**. The author does not sell keys, does not provide access services, does not serve clients.
-
-**What this means:**
-
-- Updates are **rare**, only when there is a critical fix or a personal need.
-- Niche upstream features (multi-user Shadowsocks, node sync for many nodes, MTProto for heavy loads) are **skipped** unless used.
-- The fork is **not optimized** for large setups: dozens of nodes, hundreds of clients, reseller APIs.
-- In future updates of major versions, when significant bug fixes accumulate and after analyzing the upstream of the original developer, if it really matters, a release will come out. **Cumulative** updates will include improvements specifically from the original author with whom this fork is synchronized. The automation only strips ads for the aesthetics of **home use**.
+This fork is **for personal use** for those who prefer or must use containerised environments to run applications over binaries on host. The author not sell keys, does not provide access services, and does not serve clients.
 
 **If you sell access** — this fork is probably **not for you**. Use [upstream](https://github.com/MHSanaei/3x-ui) — it has all the features for large setups, and the author supports them.
 
@@ -140,96 +35,15 @@ This fork is **for personal use**. The author does not sell keys, does not provi
 This fork **does not accept donations** and contains no ads. The project is distributed as-is, for personal and non-commercial use.
 
 If you want to support **upstream development** — please refer to the [original repository](https://github.com/MHSanaei/3x-ui).
+
 ## About the project
 
-This is a fork of the **3x-ui** panel by [MHSanaei](https://github.com/MHSanaei). Ads and sponsor infrastructure are automatically stripped from upstream files, and a bug where the Xray core was overwritten on panel update has been fixed.
-
-### Removed from the original
-
-- 🚫 Ad blocks in the panel
-- 🚫 Donation links and promo materials
-- 🚫 Sponsor slots (`SponsorSlot`, `SponsorCard`, `SponsorsPage`)
-- 🚫 Donation button in the sidebar (`DonateButton`)
-- 🚫 Documentation button linking to third-party resources (`DocsButton`)
-- 🚫 "Sponsors" menu item
-- 🚫 `/sponsors` page
-- 🚫 `/sponsors` endpoint in the API docs
-- 🚫 Sponsor tracking (`sponsors.sanaei.dev`) — IP and SNI leak
-### Changed
-
-- 🔄 All links point to **this** repository (`vermiliondevil-web/pure-3x-ui`), not upstream
-- 🔄 `panel.go`, `install.sh`, `update.sh`, `README.md` — updated for the fork
-- 🔄 **Auto-version from tag**: `release.yml` inserts the tag number into `internal/config/version`
-- 🔄 **Locales are not touched** in `remove-ads.sh` — this reduces the diff and simplifies merges
-- 🔄 **`sponsor.go` replaced with a stub** — removes the `sponsors.sanaei.dev` leak
-### Fixed
-
-- 🔧 **The Xray core is no longer overwritten on panel update.**
-  In upstream `update.sh`, before `tar`, the script does `cd /usr/local/`, so the relative path `bin/xray-linux-$(arch)` points to the wrong place — the archive silently overwrote the core selected by the user via Settings → Xray Updates. The fix (`scripts/remove-ads.sh`, patch `[8/8]`) uses absolute paths `${xui_folder}/bin/xray-linux-$(arch)`.
-  Details: [docs/xray-core-preservation.md](docs/xray-core-preservation.md).
-- 🔧 **`release.yml` renames `xray` → `xray-linux-amd64`.**
-  Previously the archive contained the `xray` binary, but the panel expected `xray-linux-amd64` → `fork/exec bin/xray-linux-amd64: no such file or directory`. Now Xray is unpacked into a temporary folder and renamed before packaging.
-
-### Not changed
-
-Everything else — functionality, Xray core, interface, API, all protocols — is preserved unchanged.
----
-
-## Known limitations
-
-### `install.sh` does not preserve the Xray core
-
-If you **reinstall** the panel via `install.sh` on a **live** system, the Xray core will be reset to the version from the archive. To **update**, use:
-
-- The "Update" button in the panel (UI).
-- The `x-ui update` command.
-
-These methods **preserve** the selected core (patch `[8/8]` in `update.sh`).
-### systemd sandbox
-
-Since `v3.10.0`, the panel runs in a sandbox: `/usr`, `/boot`, `/etc`, `/home`, `/root` are read-only, except for the panel's folders (`/etc/x-ui`, `/usr/local/x-ui`, `/var/log/x-ui`).
-
-If you **changed** the panel paths (`XUI_DB_FOLDER`, `XUI_LOG_FOLDER`), the sandbox may **block** writes. Solution — your own drop-in:
-
-```bash
-# /etc/systemd/system/x-ui.service.d/20-local.conf
-[Service]
-ReadWritePaths=/your/path
-```
-Or — do not use custom paths (keep the default).
-
-### Xray-core 26.10.10 — TLS
-
-Xray-core 26.10.10 verifies outbound TLS through built-in Mozilla roots, not the system ones. If the outbound goes to a server with a private CA — enable Use system CA in the TLS settings of that outbound.
-
-### Ads — if they come back.
-
-This fork strips ads from upstream files via `remove-ads.sh`. If upstream adds a new place for ads, the fork may not strip it immediately. Report it — we will add it.
-### What does not work
-
-- Do not update via `install.sh` on a live panel — it resets the core.
-- Do not use custom paths without a sandbox drop-in.
-- Do not expect instant support — this is one developer.
-
-## Features
-
-- Protocol support: **VLESS, VMess, Trojan, Shadowsocks, WireGuard, TUIC, AmneziaWG** and others
-- Multi-protocol inbound/outbound
-- Client management and traffic limits
-- Statistics per user and per node
-- Telegram bot for management
-- Discord notifications
-- **PostgreSQL** and **SQLite** support
-- REST API + OpenAPI specification
-- Dark and light themes
-- **Let's Encrypt** support (domain and IP)
-- Fail2ban integration
-- Master-node architecture
----
+This is a fork of the **pure-3x-ui** panel by [vermiliondevil-web](https://github.com/vermiliondevil-web) which is a fork of **3x-ui** by [MHSanaei](https://github.com/MHSanaei). This fork exists to offer a way to run pure-3x-ui in a containerised environment rather than binaries. 
 
 ## Installation
 
-### Main method (recommended)
+### Docker Compose (recommended)
+
 
 Run as **root**:
 
