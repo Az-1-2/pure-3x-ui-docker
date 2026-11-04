@@ -43,7 +43,7 @@ This is a fork of the **pure-3x-ui** panel by [vermiliondevil-web](https://githu
 
 ### Docker Compose (recommended)
 
-1. Create docker-compose.yml
+1. Create `docker-compose.yml`
 ```
 services:
   3xui:
@@ -80,7 +80,7 @@ services:
       - "443:443"
     restart: unless-stopped
 ```
-2 Run docker compose up -d to create the container, then go to the panel to begin setup. The panel may be on a local ip, regular ip, or domain on port 2053 depending on your setup. 
+2. Run `docker compose up -d` to create the container, then go to the panel to begin setup. The panel may be on a local ip, regular ip, or domain on port 2053 depending on your setup. 
 
 **Notes**: You may import an existing sqlite file in the panel if you wish. Postgres may be supported, but is untested and not recommended. 
 
@@ -94,7 +94,13 @@ docker run --name 3x-ui -v $PWD/db/:/etc/x-ui/ -v $PWD/cert/:/root/cert/ -v $PWD
 **Notes**: This is recommended for testing only, for a regular setup, it is highly recommended to use compose. 
 
 ### Convert an existing 3x-ui install
-If you already have 3x-ui running in Docker, you can simply use ghcr.io/az-1-2/pure-3x-ui:latest as a drop in replacement image without any modifications and recreate your container. If you run 3x-ui as a binary (or installed via install.sh), then you will need to backup your sqlite file and follow the compose instructions above, then reimport the sqlite file when installed. 
+If you already have 3x-ui running in Docker, you can simply use `ghcr.io/az-1-2/pure-3x-ui:latest` as a drop in replacement image without any modifications and recreate your container. If you run 3x-ui as a binary (or installed via install.sh), then you will need to backup your sqlite file and follow the compose instructions above, then reimport the sqlite file when installed. 
+
+### Building from source
+1. Clone the repo with git `git clone https://github.com/Az-1-2/pure-3x-ui-docker.git
+cd pure-3x-ui`
+2. Edit the included compose as you wish
+3. Build the image and start the container `docker compose up -d --build`
 
 ## Automation
 
