@@ -92,7 +92,7 @@ docker run --name 3x-ui -v $PWD/db/:/etc/x-ui/ -v $PWD/cert/:/root/cert/ -v $PWD
 1. Clone the repo with git `git clone https://github.com/Az-1-2/pure-3x-ui-docker.git
 cd pure-3x-ui`
 2. Edit the included compose as you wish
-3. Build the image and start the container `docker compose up -d --build`
+3. Build the image and start the container with `docker compose up -d --build`
 
 ## Automation
 
