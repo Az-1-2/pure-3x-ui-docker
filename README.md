@@ -8,7 +8,6 @@ A clean build of [3x-ui](https://github.com/MHSanaei/3x-ui) without ads or donat
 
 - **Fork:** [Packages](https://github.com/Az-1-2/pure-3x-ui-docker/pkgs/container/pure-3x-ui)
 - **Upstream:** [Packages](https://github.com/MHSanaei/3x-ui/pkgs/container/3x-ui)
-- **Sync history:** [docs/upstream-changelog.md](docs/upstream-changelog.md)
 
 ## Policy on sponsor commits
 
