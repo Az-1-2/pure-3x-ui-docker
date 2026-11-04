@@ -114,33 +114,24 @@ The repository has **two GitHub Actions workflows**:
 
 **This means:** when Sanaei releases an update, ads are stripped **automatically**, and there are **no conflicts**.
 
-### 2. `Build and Release` — build and publish releases
+### 2. `Docker image Building` — build and publish docker images
 
-Triggered by a `v*` tag or manually:
+Triggered manually:
 
 1. **`Set version from tag`** — extracts the version from the tag and writes it to `internal/config/version`.
 2. Strips ads (`scripts/remove-ads.sh`) — including replacing `sponsor.go` with a stub.
-3. Builds the frontend (`npm run build`).
-4. Builds the Go binary.
-5. Downloads the Xray core from XTLS.
-6. Packages everything into `x-ui-linux-amd64.tar.gz` + `.sha256`.
-7. Publishes the release.
-
-### How to publish a new version
-
-1. **Create a tag** with the new number:
-
-   ```bash
-   cd /workspaces/pure-3x-ui
-   git pull
-   git tag v3.9.23
-   git push origin v3.9.23
-   ```
-2. **GitHub Actions** builds release `v3.9.23` automatically.
-
-3. The **"Update" button** becomes active.
-
-4. **Click it** → the panel updates.
+3. Set up Docker Buildx.
+4. Log in to GHCR.
+5. Build and push image. 
+```
+docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --cache-from type=gha,scope=x-ui \
+            --cache-to type=gha,scope=x-ui,mode=max \
+            --tag "$IMAGE:$VERSION" \
+            --tag "$IMAGE:latest" \
+            --push .
+```
 
 ### When to publish a new release
 
@@ -154,28 +145,11 @@ Triggered by a `v*` tag or manually:
 
 ## Upstream synchronization
 
-This fork **does not chase** every upstream release. Code is pulled automatically via the `Sync Upstream` workflow, but fork releases are rare — only after testing on a test environment.
-
-### How it works
-
-1. **Automatically** (once a day, 03:00 UTC): `Sync Upstream` pulls new upstream code into `main`.
-2. **`remove-ads.sh`** strips ads/sponsors and patches `update.sh` (Xray core preservation).
-3. **No fork release is published** — `main` updates, but no `v*` tag is created.
-4. **When enough changes accumulate** — manual testing on a separate VPS begins.
-5. **After a successful test** — a tag is created, `Build and Release` builds the release, production is updated.
+Code is pulled automatically via the `Sync Upstream` workflow, and releases are published on new upstream releases, but not per commit. 
 
 ### What this means
 
-- `main` is fresh upstream code with our patches, but **not a release**.
 - `v*` tags are verified releases for production.
-- Production does not update on every upstream release.
-
-### Why we don't chase every release
-
-- Upstream releases **often** (v3.9.x → v3.10.0 in a month).
-- Fresh releases **may contain bugs** — fixes come in v3.10.1, v3.10.2.
-- **systemd sandbox** (v3.10.0) is a major change and may conflict with custom configurations.
-- **Production needs stability**, not freshness.
 
 ## Code review before release
 
@@ -221,66 +195,14 @@ tcpdump -i any -n 'not host localhost' -c 20
 - ⚠️ **Not a 100% guarantee** — you can verify the code yourself.
 ---
 
-## Security
-
-### CVE-2026-55477: Arbitrary file write by an authenticated admin
-
-**What it is:** In 3x-ui versions **before 3.3.1**, an authenticated admin could, via a database import or the Xray config editor, achieve **arbitrary file write** on the server. By manipulating the `xrayTemplateConfig.log.access` value, an attacker could redirect the Xray access log to any file on the filesystem — including `~/.ssh/authorized_keys`.
-
-**Impact:** If Xray runs as root — **full server takeover**.
-
-**CVSS score:** 7.2 (High).
-
-**Is this fork affected?** **No.** This fork is based on **v3.9.22**, which is well above the fixed version 3.3.1.
-### `sponsors.sanaei.dev` leak removed
-
-**What it was:** `internal/web/service/panel/sponsor.go` contained hardcoded URLs:
-https://sponsors.sanaei.dev/3X/sponsors.json
-https://sponsors.sanaei.dev/3X/logos/
-
-On every login page load, the panel sent a request to `sponsors.sanaei.dev` — exposing the **server IP** and **SNI** to a third party. For operators in censored countries, this let DPI identify the panel as 3x-ui.
-**What was done:**
-
-- `sponsor.go` replaced with a **stub** (functions return empty values, no network calls).
-- `scripts/remove-ads.sh` **automatically** replaces `sponsor.go` with a stub after every `Sync Upstream`.
-
-**Check:**
-
-```bash
-strings /usr/local/x-ui/x-ui | grep -c "sponsors.sanaei.dev"
-```
-# Expected: 0
-
-### Other security measures (inherited)
-
-- **Per-client IP limiting** with fail2ban integration.
-- **API tokens with granular scopes** (SHA-256 hashes).
-- **TOTP two-factor authentication**.
-- **CSRF protection, login rate limiting, SSRF protection**.
-- **Path traversal protection** (verified by `TestGeodataRejectsBadRequests`).
-### What remains (inherited, not fixed)
-
-- **Client IPs are stored in plaintext** in the SQLite database (`inbound_client_ips`, `node_client_ip`).
-- **The panel scans its own environment** at startup.
-
-### Recommendations for operators
-
-1. **Upgrade to v3.3.1+** (this fork is already above).
-2. **Change the admin credentials** immediately after installation.
-3. **Restrict panel access** to trusted IPs.
-4. **Run Xray with minimal privileges**.
-5. **Enable fail2ban**.
-6. **Make regular backups** of the database.
----
-
 ## Origin and license
 
 ### This is a fork
 
-`pure-3x-ui` is a derivative work (fork) of [3x-ui](https://github.com/MHSanaei/3x-ui).
+`pure-3x-ui-docker` is a derivative work (fork) of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui), which is a fork of [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui).
 
 - The project **is not** original development.
-- Based on [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui) code.
+- Based on [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui) and [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui) code.
 - All changes are a layer on top of the original.
 - The original author **bears no responsibility** for this fork.
 ### AGPL-3.0 license
@@ -297,28 +219,29 @@ The project is distributed under the **GNU Affero General Public License v3.0** 
 - ⚠️ Closed forks are not allowed.
 ### Links
 
-- **This fork:** https://github.com/vermiliondevil-web/pure-3x-ui
+- **This fork:** https://github.com/Az-1-2/pure-3x-ui-docker/
+- **Fork of 3x-ui:** https://github.com/vermiliondevil-web/pure-3x-ui
 - **Original:** https://github.com/MHSanaei/3x-ui
 - **License text:** [LICENSE](LICENSE)
 ---
 
 ## Acknowledgements
 
+- [vermiliondevil-web](https://github.com/vermiliondevil-web) - for creating the pure-3x-ui fork which this is based on
 - [MHSanaei](https://github.com/MHSanaei) — for the original 3x-ui
 - [XTLS/Xray-core](https://github.com/XTLS/Xray-core) — for the Xray core
 - [Acme.sh](https://github.com/acmesh-official/acme.sh) — for SSL certificates
-- [@Az-1-2](https://github.com/Az-1-2) — for the idea to strip `SponsorsPage` from `panelRoutes.tsx` (block `4.1b` in `remove-ads.sh`).
 - All contributors to the original project
 ---
 
 ## Feedback
 
-- Issues: https://github.com/vermiliondevil-web/pure-3x-ui/issues
+- Issues: https://github.com/Az-1-2/pure-3x-ui-docker/issues
 - Pull Requests: welcome
 ---
 
 ## Disclaimer
 
-This is an **unofficial fork**. The project is not affiliated with MHSanaei or XTLS.
+This is an **unofficial fork**. The project is not affiliated with vermiliondevil-web or MHSanaei or XTLS.
 
 The panel is provided as-is, for personal and non-commercial use.
