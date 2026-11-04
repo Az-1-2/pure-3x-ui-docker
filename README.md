@@ -1,18 +1,8 @@
-# pure-3x-ui
+# pure-3x-ui-docker
 
 > **This is a fork.** The project is a derivative work of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) (author — [vermiliondevil-web](https://github.com/vermiliondevil-web) Which in of itself is a fork of [3x-Ui](https://github.com/MHSanaei/3x-ui) (author — [MHSanaei](https://github.com/MHSanaei)) and is distributed under the **AGPL-3.0** license. All changes made in this fork are published under the same license.
 
 A clean build of [3x-ui](https://github.com/MHSanaei/3x-ui) without ads or donation blocks, and a build of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) with Docker images published for containerised environments. 
-
-> [!CAUTION]
-> **Do not use `dev-latest` / pre-release builds**
->
-> `dev-latest` builds (and any pre-release) are produced automatically from fresh upstream `main` and **do not go through manual testing**. They may contain:
->
-> - **Critical vulnerabilities** (e.g. CVE-2026-98432 in Xray-core v26.10.29, related to MPTCP and allowing remote root access).
-> - **Broken configurations** (format incompatibility, protocol regressions).
->
-> **Use only stable releases** via the "Update" button in the panel (Settings → Panel) or via `install.sh` with a specific tag. Do not install `dev-latest` on production.
 
 **A CALL TO UPSTREAM COMMITTERS AND CONTRIBUTORS**
 
@@ -50,7 +40,7 @@ Niche fixes (multi-user Shadowsocks, node sync, MTProto, vmess import) are **ski
 ### Current state
 
 - **Fork:** [Packages](https://github.com/Az-1-2/pure-3x-ui-docker/pkgs/container/pure-3x-ui)
-- **Upstream:** [Packages](https://github.com/MHSanaei/3x-ui/releases)
+- **Upstream:** [Packages](https://github.com/MHSanaei/3x-ui/pkgs/container/3x-ui))
 - **Sync history:** [docs/upstream-changelog.md](docs/upstream-changelog.md)
 ## Policy on sponsor commits
 
