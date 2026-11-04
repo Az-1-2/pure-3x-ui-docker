@@ -1,13 +1,8 @@
 # pure-3x-ui
 
-[![Build and Release](https://github.com/vermiliondevil-web/pure-3x-ui/actions/workflows/release.yml/badge.svg)](https://github.com/vermiliondevil-web/pure-3x-ui/actions/workflows/release.yml)
-[![Sync Upstream](https://github.com/vermiliondevil-web/pure-3x-ui/actions/workflows/sync-upstream.yml/badge.svg)](https://github.com/vermiliondevil-web/pure-3x-ui/actions/workflows/sync-upstream.yml)
-[![Release](https://img.shields.io/github/v/release/vermiliondevil-web/pure-3x-ui?label=release)](https://github.com/vermiliondevil-web/pure-3x-ui/releases/latest)
-[![License](https://img.shields.io/github/license/vermiliondevil-web/pure-3x-ui)](LICENSE)
+> **This is a fork.** The project is a derivative work of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) (author — [vermiliondevil-web](https://github.com/vermiliondevil-web) Which in of itself is a fork of [3x-Ui](https://github.com/MHSanaei/3x-ui) (author — [MHSanaei](https://github.com/MHSanaei)) and is distributed under the **AGPL-3.0** license. All changes made in this fork are published under the same license.
 
-> **This is a fork.** The project is a derivative work of [3x-ui](https://github.com/MHSanaei/3x-ui) (author — [MHSanaei](https://github.com/MHSanaei)) and is distributed under the **AGPL-3.0** license. All changes made in this fork are published under the same license.
-
-A clean build of [3x-ui](https://github.com/MHSanaei/3x-ui) without ads or donation blocks.
+A clean build of [3x-ui](https://github.com/MHSanaei/3x-ui) without ads or donation blocks, and a build of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) with Docker images published for containerised environments. 
 
 > [!CAUTION]
 > **Do not use `dev-latest` / pre-release builds**
@@ -54,8 +49,8 @@ A proxy management panel is **infrastructure**. Its code runs on servers that pe
 Niche fixes (multi-user Shadowsocks, node sync, MTProto, vmess import) are **skipped** unless used.
 ### Current state
 
-- **Fork:** [Releases](https://github.com/vermiliondevil-web/pure-3x-ui/releases/latest)
-- **Upstream:** [Releases](https://github.com/MHSanaei/3x-ui/releases)
+- **Fork:** [Packages](https://github.com/Az-1-2/pure-3x-ui-docker/pkgs/container/pure-3x-ui)
+- **Upstream:** [Packages](https://github.com/MHSanaei/3x-ui/releases)
 - **Sync history:** [docs/upstream-changelog.md](docs/upstream-changelog.md)
 ## Policy on sponsor commits
 
