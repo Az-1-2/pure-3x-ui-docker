@@ -1,6 +1,6 @@
 # pure-3x-ui-docker
 
-> **This is a fork.** The project is a derivative work of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) (author — [vermiliondevil-web](https://github.com/vermiliondevil-web)) Which in of itself is a fork of [3x-Ui](https://github.com/MHSanaei/3x-ui) (author — [MHSanaei](https://github.com/MHSanaei)) and is distributed under the **AGPL-3.0** license. All changes made in this fork are published under the same license.
+> **This is a fork.** The project is a derivative work of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) (author — [vermiliondevil-web](https://github.com/vermiliondevil-web)) Which in of itself is a fork of [3x-ui](https://github.com/MHSanaei/3x-ui) (author — [MHSanaei](https://github.com/MHSanaei)) and is distributed under the **AGPL-3.0** license. All changes made in this fork are published under the same license.
 
 A clean build of [3x-ui](https://github.com/MHSanaei/3x-ui) without ads or donation blocks, and a build of [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) with Docker images published for containerised environments. 
 
