@@ -16,9 +16,8 @@ Unlike [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) itself, t
 
 This fork is **for personal use** for those who prefer or must use containerised environments to run applications over binaries on host. The author not sell keys, does not provide access services, and does not serve clients.
 
-**If you sell access** — this fork is probably **not for you**. Use [upstream](https://github.com/MHSanaei/3x-ui) — it has all the features for large setups, and the author supports them.
+**If you sell access** — this fork is probably **not for you**. Use [upstream](https://github.com/MHSanaei/3x-ui) — it has all the features for large setups, and they are properly supported.
 
-**If you have 3–10 users** (family, friends, personal server) — this fork is for you: no ads, core preservation, rare updates.
 ## Support
 
 This fork **does not accept donations** and contains no ads. The project is distributed as-is, for personal and non-commercial use.
@@ -90,7 +89,7 @@ docker run --name 3x-ui -v $PWD/db/:/etc/x-ui/ -v $PWD/cert/:/root/cert/ -v $PWD
 
 ### Building from source
 1. Clone the repo with git `git clone https://github.com/Az-1-2/pure-3x-ui-docker.git
-cd pure-3x-ui`
+cd pure-3x-ui-docker`
 2. Edit the included compose as you wish
 3. Build the image and start the container with `docker compose up -d --build`
 
@@ -102,7 +101,7 @@ The repository has **two GitHub Actions workflows**:
 
 **Runs in ~17 seconds.** Once a day (at 03:00 UTC) or manually:
 
-1. Pulls fresh code from [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui).
+1. Pulls fresh code from [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui) and [vermiliondevil-web/pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/).
 2. **Takes locales and `update.sh` from upstream directly** — to avoid conflicts.
 3. **Commits** those files.
 4. Merges the rest with `-X theirs`.
