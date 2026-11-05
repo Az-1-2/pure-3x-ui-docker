@@ -27,53 +27,52 @@ jobs:
       - name: Sync with upstream
         run: |
           git remote add upstream https://github.com/MHSanaei/3x-ui.git || true
+          git remote add parent https://github.com/vermiliondevil-web/pure-3x-ui.git || true
           git fetch upstream main
+          git fetch parent main
 
-          # Проверяем, есть ли новые коммиты
-          if git merge-base --is-ancestor upstream/main HEAD; then
-            echo "Already up to date with upstream."
-            exit 0
-          fi
-
-          # ШАГ 1: Берём локали и update.sh из upstream напрямую
-          # (это избегает конфликтов при merge)
           git checkout upstream/main -- internal/web/translation/ || true
           git checkout upstream/main -- update.sh || true
-
-          # ШАГ 1.5: Коммитим эти изменения, чтобы merge не ругался
           git add -A
-          git diff --cached --quiet || git commit -m "chore: take locales and update.sh from upstream (pre-merge)"
+          git diff --cached --quiet || \
+            git commit -m "chore: take locales and update.sh from upstream"
 
-          # ШАГ 1.6: Удаляем файлы, которые вызывают modify/delete конфликт.
-          # В нашем форке они не нужны, а upstream их меняет -> конфликт.
-          # Удаляем ДО merge, чтобы -X theirs не спотыкался.
-          git rm -f .github/workflows/claude-pr-review.yml 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "chore: remove claude-pr-review.yml (pre-merge)" || true
+          git rm -f .github/workflows/claude-pr-review.yml || true
+          git diff --cached --quiet || \
+            git commit -m "chore: remove claude-pr-review.yml"
 
-          # ШАГ 2: Мержим остальные файлы с -X theirs
-          # (при конфликте берётся версия upstream)
-          if ! git merge upstream/main -X theirs --no-edit; then
-            echo "=== MERGE CONFLICT - resolving ==="
-            git status
+          merge_and_resolve() {
+            branch="$1"
+            echo "Merging $branch"
 
-            # Разрешаем modify/delete конфликты в пользу "удалить"
-            for f in $(git diff --name-only --diff-filter=U); do
-              if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
-                # Файл есть у нас -> берём upstream (theirs)
-                git checkout --theirs "$f" 2>/dev/null || git rm -f "$f" 2>/dev/null || true
-              else
-                # Файл удалён у нас, но есть в upstream -> удаляем
-                git rm -f "$f" 2>/dev/null || true
-              fi
-            done
+            if git merge "$branch" -X theirs --no-edit; then
+              return 0
+            fi
+
+            # If the merge failed for a reason other than file conflicts, stop.
+            git diff --name-only --diff-filter=U -z > /tmp/merge-conflicts
+            if [ ! -s /tmp/merge-conflicts ]; then
+              echo "Merge failed without file conflicts."
+              return 1
+            fi
+
+            # Resolve conflicts in favor of the incoming branch.
+            while IFS= read -r -d '' file; do
+              git checkout --theirs -- "$file" ||
+                git rm -f --ignore-unmatch -- "$file"
+            done < /tmp/merge-conflicts
+
             git add -A
-            git commit --no-verify -m "chore: sync upstream (auto-resolve conflicts)" || true
-          fi
+            git commit --no-verify -m "chore: sync $branch (auto-resolve conflicts)"
+          }
 
-          # Финальная страховка: удаляем claude-pr-review.yml после merge
-          git rm -f .github/workflows/claude-pr-review.yml 2>/dev/null || true
-          git diff --cached --quiet || git commit --no-verify -m "chore: remove claude-pr-review.yml (post-merge)" || true
+          merge_and_resolve upstream/main
+          merge_and_resolve parent/main
 
+          git rm -f .github/workflows/claude-pr-review.yml || true
+          git diff --cached --quiet || \
+          git commit --no-verify -m "chore: remove claude-pr-review.yml"
+            
       - name: Strip ads after upstream merge
         run: |
           bash scripts/remove-ads.sh
