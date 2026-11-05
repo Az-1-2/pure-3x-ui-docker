@@ -88,7 +88,7 @@ docker run --name 3x-ui -v $PWD/db/:/etc/x-ui/ -v $PWD/cert/:/root/cert/ -v $PWD
 - If you run 3x-ui as a binary (or installed via install.sh), then you will need to backup your sqlite file and follow the compose instructions above, then reimport the sqlite file when installed. However, if you do not want or need to run 3x-ui in Docker, then it is recommended to instead go to [pure-3x-ui](https://github.com/vermiliondevil-web/pure-3x-ui/) and follow its instructions. 
 
 ### Building from source
-1. Clone the repo with git `git clone https://github.com/Az-1-2/pure-3x-ui-docker.git
+1. Clone the repo with git `git clone https://github.com/Az-1-2/pure-3x-ui-docker.git &&
 cd pure-3x-ui-docker`
 2. Edit the included compose as you wish
 3. Build the image and start the container with `docker compose up -d --build`
