@@ -38,6 +38,7 @@ var salamanderWarningSeen sync.Map
 // SubService provides business logic for generating subscription links and managing subscription data.
 type SubService struct {
 	address                 string
+	configuredPublicHost    string
 	remarkTemplate          string
 	datepicker              string
 	wireguardDevice         string
@@ -96,9 +97,15 @@ type SubService struct {
 	// subscription bodies read through it, never panel link rendering.
 	settingsCache   *inboundSettingsCache
 	hostsByInbound  map[int][]*model.Host
+	hostsLoaded     map[int]bool
 	hostGroupOrders map[string]hostEntryOrder
 	hostsFirst      bool
 	sharedGroupSni  map[string]string
+	// clientGroupIDsByName and hostGroupsByClientGroup are loaded once per request;
+	// membership itself stays on clients.group_name.
+	clientGroupIDsByName    map[string]int
+	hostGroupsByClientGroup map[int]map[string]struct{}
+	clientGroupIndexLoaded  bool
 	// tuicByInbound and amneziaWGServerByInbound are the typed equivalents of
 	// settingsByInbound: one decode per request, not one per link of a subId.
 	tuicByInbound            map[int]*tuicLinkInstance
@@ -150,9 +157,11 @@ func (s *SubService) ForWireguardDevice(id string) *SubService {
 // SubService instance. HTTP handlers should call ForRequest instead so the
 // controller's shared base service is never mutated by concurrent requests.
 func (s *SubService) PrepareForRequest(host string) {
+	settings := s.settingService.GetSubscriptionRenderSettings()
+	s.configuredPublicHost = settings.PublicHost
 	if !isRoutableHost(host) {
-		if d := s.configuredPublicHost(); d != "" {
-			host = d
+		if s.configuredPublicHost != "" {
+			host = s.configuredPublicHost
 		} else if isLoopbackHost(host) {
 			host = "localhost"
 		}
@@ -167,11 +176,14 @@ func (s *SubService) PrepareForRequest(host string) {
 	s.tuicByInbound = map[int]*tuicLinkInstance{}
 	s.amneziaWGServerByInbound = map[int]*amneziawg.ServerSettings{}
 	s.hostsByInbound = nil
+	s.hostsLoaded = nil
 	s.hostGroupOrders = nil
 	s.sharedGroupSni = nil
+	s.clientGroupIDsByName = nil
+	s.hostGroupsByClientGroup = nil
+	s.clientGroupIndexLoaded = false
 	s.rendered = 0
 	s.wireguardDeviceSelected = false
-	settings := s.settingService.GetSubscriptionRenderSettings()
 	s.hostsFirst = settings.HostSortMode == "hosts-first"
 	s.loadNodes()
 	s.loadRemarkSettings(settings)
@@ -362,16 +374,6 @@ func (s *SubService) loadRemarkSettings(settings service.SubscriptionRenderSetti
 	if settings.TrafficDepletedTemplate != "" {
 		s.subTrafficDepletedTemplate = settings.TrafficDepletedTemplate
 	}
-}
-
-func (s *SubService) configuredPublicHost() string {
-	if d, err := s.settingService.GetSubDomain(); err == nil && d != "" {
-		return d
-	}
-	if d, err := s.settingService.GetWebDomain(); err == nil && d != "" {
-		return d
-	}
-	return ""
 }
 
 func isRoutableHost(host string) bool {
@@ -616,7 +618,7 @@ func (s *SubService) getSubs(subId string) ([]string, []string, int64, xray.Clie
 			}
 			var link string
 			if s.hostsFirst {
-				variants, closed := s.clientHostVariants(inbound, client, "raw")
+				variants, closed := s.selectHostVariants(inbound, client, "raw")
 				if closed {
 					seenEmails[client.Email] = struct{}{}
 					continue
@@ -630,7 +632,7 @@ func (s *SubService) getSubs(subId string) ([]string, []string, int64, xray.Clie
 					}
 					ordered = append(ordered, orderedSubEntry[func() string]{variant.order, render})
 				}
-			} else if effectiveEps, bound := s.clientHostEndpoints(inbound, client, "raw", hostEps); bound && len(effectiveEps) == 0 {
+			} else if effectiveEps, bound := s.selectHostEndpoints(inbound, client, "raw", hostEps); bound && len(effectiveEps) == 0 {
 				seenEmails[client.Email] = struct{}{}
 				continue
 			} else if len(effectiveEps) > 0 {
@@ -726,7 +728,7 @@ func (s *SubService) inboundLinks(inbound *model.Inbound) []string {
 			continue
 		}
 		seen[key] = struct{}{}
-		effectiveEps, bound := s.clientHostEndpoints(inbound, client, "raw", hostEps)
+		effectiveEps, bound := s.selectHostEndpoints(inbound, client, "raw", hostEps)
 		if bound && len(effectiveEps) == 0 {
 			continue
 		}
@@ -1921,8 +1923,8 @@ func (s *SubService) resolveInboundAddress(inbound *model.Inbound) string {
 			return c
 		}
 	}
-	if d := s.configuredPublicHost(); d != "" {
-		return d
+	if s.configuredPublicHost != "" {
+		return s.configuredPublicHost
 	}
 	return s.address
 }
